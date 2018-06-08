@@ -11,9 +11,19 @@ export default {
 </script>
 
 <style lang="less">
-@import '~vux/src/styles/reset.less';
+@import "~vux/src/styles/reset.less";
+@import '~vux/src/styles/close.less';
 
 body {
-  background-color: #fbf9fe;
+  color: #333;
+  background-color: #f2f2f2;
+}
+
+/* User View */
+.LikeDialog {
+  .weui-dialog {
+    max-width: 900px;
+    width: 92%;
+  }
 }
 </style>
