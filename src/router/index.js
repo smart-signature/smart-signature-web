@@ -7,7 +7,7 @@ Vue.use(Router);
 export default new Router({
   routes: [
     {
-      path: '/people/:id',
+      path: '/people/:userId',
       name: 'User',
       component: UserView,
     },

@@ -1,3 +1,5 @@
+import Promise from 'bluebird';
+
 export default {
   async createLike({ userId, itemId = 0, value, msg = '' }) {
     await Promise.delay(2000);

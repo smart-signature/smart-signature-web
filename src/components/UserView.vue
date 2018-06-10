@@ -1,20 +1,21 @@
 <template>
   <div class="ProfileView">
 
-    <div class="ProfileHeader">
-      <x-img :src="headimgurl"
+    <div v-if="user"
+         class="ProfileHeader">
+      <x-img :src="user.avatarUrl"
              class="ProfileHeader-avatar">
       </x-img>
 
-      <h1 class="ProfileHeader-name">麻油炒饭</h1>
+      <h1 class="ProfileHeader-name">{{user.nickname}}</h1>
 
       <div class="ProfileHeader-info">
         <div class="ProfileHeader-infoItem">
-          男
+          {{user.sex}}
           <div class="ProfileHeader-divider"></div>
-          上海 浦东
+          {{user.location}}
         </div>
-        <div class="ProfileHeader-infoItem">这个作者很懒，没有写个人签名</div>
+        <div class="ProfileHeader-infoItem">{{user.bio}}</div>
       </div>
 
       <div class="ProfileHeader-footer">
@@ -22,9 +23,34 @@
                   class="LikeBtn"
                   mini
                   plain
-                  type="warn">喜欢作者</x-button>
+                  type="warn">{{likeText}}</x-button>
       </div>
+
+      <divider style="width:50%; margin: 12px auto 0 auto;">
+        <span style="font-size:13px;">
+          <span style="color:#576b95;">{{user.fansCount}}</span> 人喜欢</span>
+      </divider>
+
+      <div style="width:70%; margin: auto;">
+        <flexbox :gutter="0"
+                 wrap="wrap">
+          <flexbox-item v-for="fans in user.top25Fans"
+                        :key="fans.id"
+                        :span="1/7">
+            <div style="padding:10%;">
+              <x-img :src="fans.avatarUrl"
+                     class="avatar"
+                     style="display:block; border-radius:2px;"> </x-img>
+            </div>
+          </flexbox-item>
+        </flexbox>
+      </div>
+
     </div>
+
+    <panel header="文章"
+           :list="list"
+           type="1"></panel>
 
     <x-dialog v-model="showDialogLike"
               class="LikeDialog">
@@ -39,13 +65,14 @@
         <div class="LikeDialogBody">
           <flexbox :gutter=0
                    wrap="wrap">
-            <flexbox-item v-for="i in 6"
+            <flexbox-item v-for="i in [0.002,0.004,0.008,0.016,0.032,0.064]"
                           :key="i"
                           :span="1/3">
               <div class="LikeValueBtn-Wrapper">
-                <x-button class="LikeValueBtn"
+                <x-button @click.native="()=>{onCreateLike(i)}"
+                          class="LikeValueBtn"
                           plain
-                          type="warn">11{{i}}
+                          type="warn">{{i}}
                   <sup>ETH</sup>
                 </x-button>
               </div>
@@ -62,7 +89,10 @@
 </template>
 
 <script>
+import { mapState, mapActions } from 'vuex';
 import {
+  Loading,
+  Panel,
   Group,
   Cell,
   XTextarea,
@@ -77,17 +107,22 @@ import {
   XDialog,
   Actionsheet,
   Tabbar,
-  TabbarItem,
+  TransferDomDirective as TransferDom,
 } from 'vux';
 
 export default {
+  directives: {
+    TransferDom,
+  },
   components: {
+    Loading,
+    Panel,
     Group,
     Cell,
+    GridItem,
     XTextarea,
     XInput,
     Grid,
-    GridItem,
     XDialog,
     Flexbox,
     FlexboxItem,
@@ -96,18 +131,83 @@ export default {
     XImg,
     Actionsheet,
     Tabbar,
-    TabbarItem,
   },
   data() {
     return {
       showDialogLike: false,
-      headimgurl:
-        'http://thirdwx.qlogo.cn/mmopen/vi_32/PiajxSqBRaEJvbmjxQ5m7JyTXFhf0HEVJgC4IHSuhUOFseI2rMoAqtQ9aACohkYINm50OM4icU4tiaKw8hTu8ZmlQ/132',
+      list: [
+        {
+          src: 'http://somedomain.somdomain/x.jpg',
+          fallbackSrc: 'http://placeholder.qiniudn.com/60x60/3cc51f/ffffff',
+          title: '标题一',
+          desc:
+            '由各种物质组成的巨型球状天体，叫做星球。星球有一定的形状，有自己的运行轨道。',
+          url: '/component/cell',
+        },
+        {
+          src: 'http://placeholder.qiniudn.com/60x60/3cc51f/ffffff',
+          title: '标题二',
+          desc:
+            '由各种物质组成的巨型球状天体，叫做星球。星球有一定的形状，有自己的运行轨道。',
+          url: {
+            path: '/component/radio',
+            replace: false,
+          },
+          meta: {
+            source: '来源信息',
+            date: '时间',
+            other: '其他信息',
+          },
+        },
+      ],
     };
   },
+  computed: {
+    ...mapState({
+      user(state) {
+        return state.user.userMap[this.userId];
+      },
+    }),
+    likeText() {
+      const list = ['喜欢 TA', 'PICK TA', '稀罕 TA', '点赞 TA'];
+      return list[Math.floor(Math.random() * list.length)];
+    },
+    userId() {
+      return this.$route.params.userId;
+    },
+  },
+  async created() {
+    this.getUserById(this.userId).catch((e) => {
+      alert('获取用户信息失败');
+      console.log('获取用户信息失败', { e });
+    });
+  },
   methods: {
+    ...mapActions({
+      getUserById: 'user/getUserById',
+      createLike: 'like/createLike',
+    }),
     onShowDialogLike() {
       this.showDialogLike = true;
+    },
+    onCreateLike(value) {
+      this.showDialogLike = false;
+      this.$vux.loading.show();
+
+      this.createLike({
+        userId: this.userId,
+        value,
+      })
+        .then((tx) => {
+          alert(`提交成功，请等待矿工确认。\nTX:${tx}`);
+        })
+        .catch((e) => {
+          alert('提交失败');
+          console.log('打赏失败', { e });
+        })
+        .then(() => {
+          this.$vux.loading.hide();
+        });
     },
   },
 };
@@ -192,10 +292,10 @@ export default {
   color: #fa624a;
   border: 1.5px solid #fcb0a4 !important;
   font-weight: 900;
-  font-size: 21px;
+  font-size: 17px;
   background: none !important;
   sup {
-    font-size: 10px;
+    font-size: 9px;
   }
 }
 </style>

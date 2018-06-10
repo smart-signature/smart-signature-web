@@ -10,6 +10,16 @@ export default {
       location: '上海 虹口',
       avatarUrl: 'http://thirdwx.qlogo.cn/mmopen/vi_32/PiajxSqBRaEJvbmjxQ5m7JyTXFhf0HEVJgC4IHSuhUOFseI2rMoAqtQ9aACohkYINm50OM4icU4tiaKw8hTu8ZmlQ/132',
       bio: '这个作者很懒，没有写个人签名',
+      fansCount: 66,
+      top25Fans: [{
+        id: 1,
+        nickname: 'yy',
+        avatarUrl: 'http://thirdwx.qlogo.cn/mmopen/vi_32/PiajxSqBRaEJvbmjxQ5m7JyTXFhf0HEVJgC4IHSuhUOFseI2rMoAqtQ9aACohkYINm50OM4icU4tiaKw8hTu8ZmlQ/132',
+      }, {
+        id: 2,
+        nickname: 'yyxx',
+        avatarUrl: 'http://thirdwx.qlogo.cn/mmopen/vi_32/PiajxSqBRaEJvbmjxQ5m7JyTXFhf0HEVJgC4IHSuhUOFseI2rMoAqtQ9aACohkYINm50OM4icU4tiaKw8hTu8ZmlQ/132',
+      }],
     };
   },
 };
