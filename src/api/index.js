@@ -1,5 +1,5 @@
-import user from './user';
-import like from './like';
+import user from './services/user';
+import like from './services/like';
 
 export default {
   user,
