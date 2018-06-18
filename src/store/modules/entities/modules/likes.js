@@ -16,8 +16,8 @@ const getters = {
   getById: (state, _getters, rootState, rootGetters) => (likeId) => {
     const like = state.data[likeId];
     if (like) {
-      like.to = rootGetters['entities/users/getById'](like.to.id);
-      like.from = rootGetters['entities/users/getById'](like.from.id);
+      like.toUser = rootGetters['entities/users/getById'](like.toUser.id);
+      like.fromUser = rootGetters['entities/users/getById'](like.fromUser.id);
     }
     return {
       data: like,
@@ -29,12 +29,14 @@ const getters = {
 };
 
 const actions = {
-    // 打赏（创建一个like）
-  async create({ commit }, { userId, value, message, itemId }) {
+  // 打赏（创建一个like）
+  async create({ commit, dispatch }, { toUserId, itemId = 0, value, digiccy = 'ETH', message = '' }) {
     commit('startCreating');
     try {
-      const like = await api.like.create({ userId, value, message, itemId });
+      const like = await api.like.create({ toUserId, itemId, value, digiccy, message });
       commit('createSuccess', like);
+      // 打赏成功了，更新用户(toUserId)收到的最新打赏
+      dispatch('latestLikesToUser/fetch', toUserId, { root: true });
     } catch (error) {
       commit('createFailed', error);
     }

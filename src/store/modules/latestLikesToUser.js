@@ -25,16 +25,17 @@ const getters = {
 const actions = {
   // 获取某用户(userId)收到的最新的limit个likes
   async fetch({ commit }, userId) {
-    const limit = config.limitOfLatestLikesToUser个likes;
+    const limit = config.limitOfLatestLikesToUser;
     commit('startFetching', userId);
     try {
-      const { total, list } = await api.like.list({ userId, limit, offset: 0, order: 'DESC' });
+      const { total, list } = await api.like.list({ toUserId: userId, limit, offset: 0, order: 'DESC' });
       commit('setData', { likes: list, userId });
       list.forEach((like) => {
         commit('entities/likes/setData', like, { root: true });
-        commit('entities/users/setData', like.to, { root: true });
-        commit('entities/users/setData', like.from, { root: true });
+        commit('entities/users/setData', like.toUser, { root: true });
+        commit('entities/users/setData', like.fromUser, { root: true });
       });
+      commit('entities/users/setData', { id: userId, totalOfReceivedLikes: total }, { root: true });
     } catch (error) {
       commit('fetchFailed', { userId, error });
     }

@@ -1,32 +1,33 @@
 import request from '../request';
 
 export default {
-  async create({ userId, itemId = 0, value, msg = '' }) {
+  async create({ toUserId, itemId = 0, value, digiccy = 'ETH', message = '' }) {
     const like = await request(
       {
         path: '/likes',
         method: 'post',
       }, {
-        userId,
+        toUserId,
         itemId,
         value,
-        msg,
+        digiccy,
+        message,
       });
     return like;
   },
 
   // 根据filter(to: 接收like的用户id)，获取likes列表
-  async list({ to, limit = 25, offset = 0 }) {
-    const { total, list } = await request('/likes', {
-      to,
+  async list({ toUserId, limit = 25, offset = 0 }) {
+    const { count, rows } = await request('/likes', {
+      toUserId,
       limit,
       offset,
     });
     return {
-      total,
+      total: count,
       limit,
       offset,
-      list,
+      list: rows,
     };
   },
 };

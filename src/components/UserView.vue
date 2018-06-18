@@ -1,21 +1,30 @@
 <template>
   <div class="ProfileView">
 
-    <div v-if="user"
+    <loading :show="user.status === 'loading' || likeCreating.status==='creating'"></loading>
+    <alert v-if="user.status==='failed'"
+           :value="true"
+           :title="user.error.code">{{user.error.message}}</alert>
+
+    <alert v-if="likeCreating.status === 'failed'"
+           :value="true"
+           :title="likeCreating.error.code">{{likeCreating.error.message}}</alert>
+
+    <div v-if="user.status === 'loaded'"
          class="ProfileHeader">
-      <x-img :src="user.avatarUrl"
+      <x-img :src="user.data.avatarUrl"
              class="ProfileHeader-avatar">
       </x-img>
 
-      <h1 class="ProfileHeader-name">{{user.nickname}}</h1>
+      <h1 class="ProfileHeader-name">{{user.data.nickname}}</h1>
 
       <div class="ProfileHeader-info">
         <div class="ProfileHeader-infoItem">
-          {{user.sex}}
+          {{user.data.sex}}
           <div class="ProfileHeader-divider"></div>
-          {{user.location}}
+          {{user.data.location}}
         </div>
-        <div class="ProfileHeader-infoItem">{{user.bio}}</div>
+        <div class="ProfileHeader-infoItem">{{user.data.bio}}</div>
       </div>
 
       <div class="ProfileHeader-footer">
@@ -26,24 +35,27 @@
                   type="warn">{{likeText}}</x-button>
       </div>
 
-      <divider style="width:50%; margin: 12px auto 0 auto;">
-        <span style="font-size:13px;">
-          <span style="color:#576b95;">{{user.fansCount}}</span> 人喜欢</span>
-      </divider>
+      <div>
+        <divider style="width:50%; margin: 12px auto 0 auto;">
+          <span style="font-size:13px;">
+            <span style="color:#576b95;">{{user.data.totalOfReceivedLikes}}</span> 人喜欢</span>
+        </divider>
 
-      <div style="width:70%; margin: auto;">
-        <flexbox :gutter="0"
-                 wrap="wrap">
-          <flexbox-item v-for="fans in user.top25Fans"
-                        :key="fans.id"
-                        :span="1/7">
-            <div style="padding:10%;">
-              <x-img :src="fans.avatarUrl"
-                     class="avatar"
-                     style="display:block; border-radius:2px;"> </x-img>
-            </div>
-          </flexbox-item>
-        </flexbox>
+        <div style="width:70%; margin: auto;">
+          <flexbox :gutter="0"
+                   wrap="wrap">
+            <flexbox-item v-for="like in latestLikesToUser.data"
+                          v-if="like"
+                          :key="like.id"
+                          :span="1/7">
+              <div style="padding:10%;">
+                <x-img :src="like.fromUser.data.avatarUrl"
+                       class="avatar"
+                       style="display:block; border-radius:2px;"> </x-img>
+              </div>
+            </flexbox-item>
+          </flexbox>
+        </div>
       </div>
 
     </div>
@@ -89,8 +101,9 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import {
+  Alert,
   Loading,
   Panel,
   Group,
@@ -115,6 +128,7 @@ export default {
     TransferDom,
   },
   components: {
+    Alert,
     Loading,
     Panel,
     Group,
@@ -134,23 +148,23 @@ export default {
   },
   data() {
     return {
+      show: true,
       showDialogLike: false,
       list: [
         {
-          src: 'http://somedomain.somdomain/x.jpg',
-          fallbackSrc: 'http://placeholder.qiniudn.com/60x60/3cc51f/ffffff',
+          src: 'http://placehold.it//60x60/3cc51f/ffffff',
           title: '标题一',
           desc:
             '由各种物质组成的巨型球状天体，叫做星球。星球有一定的形状，有自己的运行轨道。',
-          url: '/component/cell',
+          // url: '/component/cell',
         },
         {
-          src: 'http://placeholder.qiniudn.com/60x60/3cc51f/ffffff',
+          src: 'http://placehold.it//60x60/3cc51f/ffffff',
           title: '标题二',
           desc:
             '由各种物质组成的巨型球状天体，叫做星球。星球有一定的形状，有自己的运行轨道。',
           url: {
-            path: '/component/radio',
+            // path: '/component/radio',
             replace: false,
           },
           meta: {
@@ -163,51 +177,44 @@ export default {
     };
   },
   computed: {
-    ...mapState({
-      user(state) {
-        return state.user.userMap[this.userId];
-      },
+    ...mapGetters({
+      getUserById: 'entities/users/getById',
+      getLatestLikesToUser: 'latestLikesToUser/getByUserId',
+      likeCreating: 'entities/likes/getCreating',
     }),
     likeText() {
       const list = ['喜欢 TA', 'PICK TA', '稀罕 TA', '点赞 TA'];
       return list[Math.floor(Math.random() * list.length)];
     },
+    user() {
+      return this.getUserById(this.userId);
+    },
     userId() {
       return this.$route.params.userId;
     },
+    latestLikesToUser() {
+      return this.getLatestLikesToUser(this.userId);
+    },
   },
   async created() {
-    this.getUserById(this.userId).catch((e) => {
-      alert('获取用户信息失败');
-      console.log('获取用户信息失败', { e });
-    });
+    window.kk = this;
+    // 获取用户信息
+    this.fetchUser(this.userId);
+    // 获取用户收到的最新25个打赏
+    this.fetchLatestLikesToUser(this.userId);
   },
   methods: {
     ...mapActions({
-      getUserById: 'user/getUserById',
-      createLike: 'like/createLike',
+      fetchUser: 'entities/users/fetch',
+      fetchLatestLikesToUser: 'latestLikesToUser/fetch',
+      createLike: 'entities/likes/create',
     }),
     onShowDialogLike() {
       this.showDialogLike = true;
     },
     onCreateLike(value) {
+      this.createLike({ toUserId: this.userId, value });
       this.showDialogLike = false;
-      this.$vux.loading.show();
-
-      this.createLike({
-        userId: this.userId,
-        value,
-      })
-        .then((tx) => {
-          alert(`提交成功，请等待矿工确认。\nTX:${tx}`);
-        })
-        .catch((e) => {
-          alert('提交失败');
-          console.log('打赏失败', { e });
-        })
-        .then(() => {
-          this.$vux.loading.hide();
-        });
     },
   },
 };

@@ -27,7 +27,8 @@ export default async (options, payload) => {
   }
 
   if (method === 'get') {
-    params = payload;
+    params = payload || {};
+    params.t = (new Date()).getTime(); // no-cache
   } else {
     data = payload;
   }

@@ -39,7 +39,15 @@ const mutations = {
   // 设置某用户信息(data => user，status => loaded, error => undefined)
   setData(state, user) {
     const userId = user.id;
-    Vue.set(state.data, userId, user);
+    const extend = user.wechat_nickname ? {
+      nickname: user.wechat_nickname,
+      avatarUrl: user.wechat_headimgurl,
+      sex: ['', '男', '女'][user.wechat_sex],
+      bio: user.bio || 'TA 有点懒，木有写个人签名',
+      location: `${user.wechat_province} ${user.wechat_city}`,
+    } : {};
+    const exist = state.data[userId] || {};
+    Vue.set(state.data, userId, { ...exist, ...user, ...extend });
     Vue.set(state.errors, userId, undefined);
     Vue.set(state.status, userId, 'loaded');
   },
