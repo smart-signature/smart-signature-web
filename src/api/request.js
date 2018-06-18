@@ -3,6 +3,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import config from '@/config';
 
+axios.defaults.withCredentials = true;
 // Return result or throw err {code, message}
 export default async (options, payload) => {
   let method;
