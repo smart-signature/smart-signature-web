@@ -4,6 +4,13 @@ import _ from 'lodash';
 import config from '@/config';
 
 axios.defaults.withCredentials = true;
+
+const loginByWechat = () => {
+  const path = `/login/wechat?redirect=${encodeURIComponent(window.location.href)}`;
+  const url = `${config.apiUrl}${path}`;
+  window.location.replace(url);
+};
+
 // Return result or throw err {code, message}
 export default async (options, payload) => {
   let method;
@@ -40,7 +47,11 @@ export default async (options, payload) => {
     const code = _.get(e, 'response.data.code') || 'REQUEST_FAIL';
     const message = _.get(e, 'response.data.message') || '请求失败';
     const error = { code, message };
-    throw error;
+    if (code === 'UNAUTHORIZED') { // 未登录
+      loginByWechat();
+    } else {
+      throw error;
+    }
   }
 
   if (res.status === 200) {
