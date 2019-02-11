@@ -21,7 +21,6 @@
 <script>
 import { mapActions, mapGetters } from 'vuex';
 import { Tabbar, TabbarItem, Group, Cell } from 'vux';
-import api from '@/api';
 
 export default {
   name: 'app',
