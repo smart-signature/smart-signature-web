@@ -43,6 +43,8 @@ const actions = {
   },
 };
 
+/* eslint no-param-reassign: ["error", { "props": false }] */
+
 const mutations = {
   startCreating(state) {
     state.creating.status = 'creating';

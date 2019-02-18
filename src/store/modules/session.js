@@ -24,6 +24,8 @@ const actions = {
   },
 };
 
+/* eslint no-param-reassign: ["error", { "props": false }] */
+
 const mutations = {
   setUser(state, user) {
     state.user = user;
